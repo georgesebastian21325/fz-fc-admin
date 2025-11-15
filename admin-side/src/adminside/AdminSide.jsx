@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
-import ManageMembers from '../admin-side-components/ManageMembers';
+import ManageMembers from '../pages/ManageMembers';
 import MembersArchive from '../admin-side-components/MembersArchive';
 import AuthenticationCode from '../admin-side-components/AuthenticationCode';
 
