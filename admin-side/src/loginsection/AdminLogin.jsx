@@ -69,7 +69,7 @@ const AdminLogin = () => {
             {/* Headings */}
             <div className="space-y-1">
               <h1 className="text-5xl md:text-6xl font-black text-foreground tracking-tight leading-none">
-                Fitness Zones
+                Fitness Zone
               </h1>
               <h2 className="text-3xl md:text-4xl font-bold text-foreground leading-none">
                 Fitness Center
