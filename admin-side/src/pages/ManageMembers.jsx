@@ -33,7 +33,7 @@ const ManageMembers = () => {
         }));
 
         const filteredUsers = usersList.filter(
-          (user) => user.email !== 'lifestylefitnessgymlfg1@gmail.com'
+          (user) => user.email !== 'fitnesszc@gmail.com'
         );
 
         const today = new Date();

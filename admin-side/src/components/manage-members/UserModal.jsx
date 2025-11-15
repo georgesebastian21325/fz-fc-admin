@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebaseConfig';
 import {
   X,
-  Mail,
   User,
+  Mail,
   Calendar,
   Clock,
   Plus,
@@ -16,73 +18,97 @@ const UserModal = ({
   user,
   onClose,
   onDelete,
-  membershipDuration,
-  setMembershipDuration,
   verifiedUsers,
   setVerifiedUsers,
   setPromptMessage,
   setShowPrompt,
 }) => {
+  const [extendDays, setExtendDays] = useState('');
+  const [shortenDays, setShortenDays] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const calculateRemainingDays = (expiryDate) => {
+    if (!expiryDate) return 0;
     const today = new Date();
     const expiry = new Date(expiryDate);
     return Math.max(0, Math.ceil((expiry - today) / (1000 * 60 * 60 * 24)));
   };
 
   const extendMembership = async () => {
-    if (membershipDuration < 1) {
+    const days = Number(extendDays);
+    if (!days || days < 1) {
       setPromptMessage('Please enter a valid number of days.');
       setShowPrompt(true);
       return;
     }
 
-    const currentExpiry = new Date(user.membershipExpiry);
-    const newExpiry = new Date(
-      currentExpiry.setDate(currentExpiry.getDate() + membershipDuration)
-    );
+    try {
+      const currentExpiry = new Date(user.membershipExpiry);
+      const newExpiry = new Date(currentExpiry);
+      newExpiry.setDate(newExpiry.getDate() + days);
 
-    setVerifiedUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, membershipExpiry: newExpiry.toISOString() }
-          : u
-      )
-    );
+      await updateDoc(doc(db, 'users', user.id), {
+        membershipExpiry: newExpiry.toISOString(),
+      });
 
-    setPromptMessage(`Membership extended by ${membershipDuration} day(s).`);
-    setShowPrompt(true);
+      setVerifiedUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id
+            ? { ...u, membershipExpiry: newExpiry.toISOString() }
+            : u
+        )
+      );
+
+      setPromptMessage(`Membership extended by ${days} day(s).`);
+      setShowPrompt(true);
+      setExtendDays('');
+    } catch (error) {
+      console.error(error);
+      setPromptMessage('Failed to extend membership.');
+      setShowPrompt(true);
+    }
   };
 
   const shortenMembership = async () => {
-    if (membershipDuration < 1) {
+    const days = Number(shortenDays);
+    if (!days || days < 1) {
       setPromptMessage('Please enter a valid number of days.');
       setShowPrompt(true);
       return;
     }
 
-    const currentExpiry = new Date(user.membershipExpiry);
     const today = new Date();
-    const newExpiry = new Date(
-      currentExpiry.setDate(currentExpiry.getDate() - membershipDuration)
-    );
+    const currentExpiry = new Date(user.membershipExpiry);
+    const newExpiry = new Date(currentExpiry);
+    newExpiry.setDate(newExpiry.getDate() - days);
+
     if (newExpiry < today) {
       setPromptMessage("Cannot shorten membership beyond today's date.");
       setShowPrompt(true);
       return;
     }
 
-    setVerifiedUsers((prev) =>
-      prev.map((u) =>
-        u.id === user.id
-          ? { ...u, membershipExpiry: newExpiry.toISOString() }
-          : u
-      )
-    );
+    try {
+      await updateDoc(doc(db, 'users', user.id), {
+        membershipExpiry: newExpiry.toISOString(),
+      });
 
-    setPromptMessage(`Membership shortened by ${membershipDuration} day(s).`);
-    setShowPrompt(true);
+      setVerifiedUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id
+            ? { ...u, membershipExpiry: newExpiry.toISOString() }
+            : u
+        )
+      );
+
+      setPromptMessage(`Membership shortened by ${days} day(s).`);
+      setShowPrompt(true);
+      setShortenDays('');
+    } catch (error) {
+      console.error(error);
+      setPromptMessage('Failed to shorten membership.');
+      setShowPrompt(true);
+    }
   };
 
   const remainingDays = user.membershipExpiry
@@ -102,7 +128,6 @@ const UserModal = ({
           >
             <X className="w-5 h-5 text-white group-hover:rotate-90 transition-transform duration-200" />
           </button>
-
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
               <User className="w-8 h-8 text-white" />
@@ -118,13 +143,12 @@ const UserModal = ({
           </div>
         </div>
 
-        {/* User Info Section */}
+        {/* User Info */}
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Email */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4" />{' '}
                 <span className="font-semibold">Email</span>
               </div>
               <p className="text-gray-800 font-medium break-all">
@@ -132,10 +156,9 @@ const UserModal = ({
               </p>
             </div>
 
-            {/* Name */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                <User className="w-4 h-4" />
+                <User className="w-4 h-4" />{' '}
                 <span className="font-semibold">Full Name</span>
               </div>
               <p className="text-gray-800 font-medium">
@@ -143,10 +166,9 @@ const UserModal = ({
               </p>
             </div>
 
-            {/* Status */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
               <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-4 h-4" />{' '}
                 <span className="font-semibold">Status</span>
               </div>
               <span
@@ -160,11 +182,10 @@ const UserModal = ({
               </span>
             </div>
 
-            {/* Remaining Days */}
             {user.membershipExpiry && (
-              <div className="bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl border border-gray-200">
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="flex items-center gap-2 text-gray-500 text-sm mb-2">
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-4 h-4" />{' '}
                   <span className="font-semibold">Remaining Days</span>
                 </div>
                 <span
@@ -182,11 +203,11 @@ const UserModal = ({
             )}
           </div>
 
-          {/* Membership Expiry - Full Width */}
+          {/* Membership Expiry */}
           {user.membershipExpiry && (
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
               <div className="flex items-center gap-2 text-blue-700 text-sm mb-2">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4" />{' '}
                 <span className="font-semibold">Membership Expiry</span>
               </div>
               <p className="text-blue-900 font-bold text-lg">
@@ -201,10 +222,10 @@ const UserModal = ({
           )}
         </div>
 
-        {/* Membership Management */}
+        {/* Extend & Shorten Membership */}
         <div className="p-6 pt-0 space-y-4">
-          {/* Extend Membership */}
-          <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-5 rounded-xl border-2 border-emerald-200">
+          {/* Extend */}
+          <div className="bg-emerald-50 p-5 rounded-xl border-2 border-emerald-200">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center">
                 <Plus className="w-5 h-5 text-white" />
@@ -217,22 +238,22 @@ const UserModal = ({
               <input
                 type="number"
                 min="1"
+                value={extendDays}
                 placeholder="Enter days to add"
-                className="flex-1 p-3 border-2 border-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                onChange={(e) => setMembershipDuration(Number(e.target.value))}
+                className="flex-1 p-3 border-2 border-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                onChange={(e) => setExtendDays(e.target.value)}
               />
               <button
                 onClick={extendMembership}
-                className="bg-gradient-to-r from-emerald-600 to-green-600 text-white py-3 px-6 rounded-xl hover:from-emerald-700 hover:to-green-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+                className="bg-emerald-600 text-white py-3 px-6 rounded-xl hover:bg-emerald-700 font-semibold shadow-lg flex items-center gap-2"
               >
-                <Plus className="w-4 h-4" />
-                Add Days
+                <Plus className="w-4 h-4" /> Add Days
               </button>
             </div>
           </div>
 
-          {/* Shorten Membership */}
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 p-5 rounded-xl border-2 border-orange-200">
+          {/* Shorten */}
+          <div className="bg-orange-50 p-5 rounded-xl border-2 border-orange-200">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center">
                 <Minus className="w-5 h-5 text-white" />
@@ -245,60 +266,52 @@ const UserModal = ({
               <input
                 type="number"
                 min="1"
+                value={shortenDays}
                 placeholder="Enter days to remove"
-                className="flex-1 p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                onChange={(e) => setMembershipDuration(Number(e.target.value))}
+                className="flex-1 p-3 border-2 border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                onChange={(e) => setShortenDays(e.target.value)}
               />
               <button
                 onClick={shortenMembership}
-                className="bg-gradient-to-r from-orange-600 to-red-600 text-white py-3 px-6 rounded-xl hover:from-orange-700 hover:to-red-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+                className="bg-orange-600 text-white py-3 px-6 rounded-xl hover:bg-orange-700 font-semibold shadow-lg flex items-center gap-2"
               >
-                <Minus className="w-4 h-4" />
-                Remove Days
+                <Minus className="w-4 h-4" /> Remove Days
               </button>
             </div>
           </div>
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer */}
         <div className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
           <button
             onClick={onClose}
-            className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white py-3 px-6 rounded-xl hover:from-gray-700 hover:to-gray-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+            className="flex-1 bg-gray-600 text-white py-3 px-6 rounded-xl hover:bg-gray-700 font-semibold shadow-lg transition-all"
           >
             Close
           </button>
           <button
             onClick={() => setShowDeleteConfirm(true)}
-            className="flex-1 bg-gradient-to-r from-red-600 to-rose-700 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-rose-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+            className="flex-1 bg-red-600 text-white py-3 px-6 rounded-xl hover:bg-red-700 font-semibold shadow-lg flex items-center justify-center gap-2"
           >
-            <Trash2 className="w-4 h-4" />
-            Delete User
+            <Trash2 className="w-4 h-4" /> Delete User
           </button>
         </div>
 
-        {/* Delete Confirmation Modal */}
+        {/* Delete Confirmation */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black/70 backdrop-blur-sm z-50 animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md animate-in zoom-in-95 duration-200">
-              {/* Warning Header */}
-              <div className="bg-gradient-to-r from-red-600 to-rose-700 p-6 rounded-t-2xl">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                    <AlertTriangle className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white">
-                      Confirm Deletion
-                    </h2>
-                    <p className="text-red-100 text-sm">
-                      This action cannot be undone
-                    </p>
-                  </div>
+          <div className="fixed inset-0 flex justify-center items-center bg-black/70 backdrop-blur-sm z-50">
+            <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-6 animate-in zoom-in-95 duration-200">
+              <div className="bg-red-600 p-6 rounded-t-2xl flex items-center gap-4">
+                <AlertTriangle className="w-7 h-7 text-white" />
+                <div>
+                  <h2 className="text-2xl font-bold text-white">
+                    Confirm Deletion
+                  </h2>
+                  <p className="text-red-100 text-sm">
+                    This action cannot be undone
+                  </p>
                 </div>
               </div>
-
-              {/* Content */}
               <div className="p-6">
                 <p className="text-gray-700 text-lg mb-2">
                   Are you sure you want to delete this user's membership?
@@ -312,12 +325,10 @@ const UserModal = ({
                   </p>
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="p-6 pt-0 flex gap-3">
+              <div className="flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-xl hover:bg-gray-300 font-semibold transition-all duration-200"
+                  className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-xl hover:bg-gray-300 font-semibold transition-all"
                 >
                   Cancel
                 </button>
@@ -326,10 +337,9 @@ const UserModal = ({
                     onDelete(user.id);
                     setShowDeleteConfirm(false);
                   }}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-rose-700 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-rose-800 font-semibold shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2"
+                  className="flex-1 bg-red-600 text-white py-3 px-6 rounded-xl hover:bg-red-700 font-semibold shadow-lg flex items-center justify-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
+                  <Trash2 className="w-4 h-4" /> Delete
                 </button>
               </div>
             </div>
