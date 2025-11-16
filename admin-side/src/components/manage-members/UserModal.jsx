@@ -26,6 +26,19 @@ const UserModal = ({
   const [extendDays, setExtendDays] = useState('');
   const [shortenDays, setShortenDays] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [internalMessage, setInternalMessage] = useState({
+    show: false,
+    text: '',
+    type: '',
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const showMessage = (text, type = 'success') => {
+    setInternalMessage({ show: true, text, type });
+    setTimeout(() => {
+      setInternalMessage({ show: false, text: '', type: '' });
+    }, 3000);
+  };
 
   const calculateRemainingDays = (expiryDate) => {
     if (!expiryDate) return 0;
@@ -37,8 +50,7 @@ const UserModal = ({
   const extendMembership = async () => {
     const days = Number(extendDays);
     if (!days || days < 1) {
-      setPromptMessage('Please enter a valid number of days.');
-      setShowPrompt(true);
+      showMessage('Please enter a valid number of days.', 'error');
       return;
     }
 
@@ -59,21 +71,18 @@ const UserModal = ({
         )
       );
 
-      setPromptMessage(`Membership extended by ${days} day(s).`);
-      setShowPrompt(true);
+      showMessage(`Membership extended by ${days} day(s).`, 'success');
       setExtendDays('');
     } catch (error) {
       console.error(error);
-      setPromptMessage('Failed to extend membership.');
-      setShowPrompt(true);
+      showMessage('Failed to extend membership.', 'error');
     }
   };
 
   const shortenMembership = async () => {
     const days = Number(shortenDays);
     if (!days || days < 1) {
-      setPromptMessage('Please enter a valid number of days.');
-      setShowPrompt(true);
+      showMessage('Please enter a valid number of days.', 'error');
       return;
     }
 
@@ -83,8 +92,7 @@ const UserModal = ({
     newExpiry.setDate(newExpiry.getDate() - days);
 
     if (newExpiry < today) {
-      setPromptMessage("Cannot shorten membership beyond today's date.");
-      setShowPrompt(true);
+      showMessage("Cannot shorten membership beyond today's date.", 'error');
       return;
     }
 
@@ -101,13 +109,28 @@ const UserModal = ({
         )
       );
 
-      setPromptMessage(`Membership shortened by ${days} day(s).`);
-      setShowPrompt(true);
+      showMessage(`Membership shortened by ${days} day(s).`, 'success');
       setShortenDays('');
     } catch (error) {
       console.error(error);
-      setPromptMessage('Failed to shorten membership.');
-      setShowPrompt(true);
+      showMessage('Failed to shorten membership.', 'error');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    setIsDeleting(true);
+    try {
+      await onDelete(user.id);
+      showMessage('User has been archived successfully.', 'success');
+      // Close modal after a brief delay to show the success message
+      setTimeout(() => {
+        setShowDeleteConfirm(false);
+        onClose();
+      }, 1500);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      showMessage('Failed to archive user. Please try again.', 'error');
+      setIsDeleting(false);
     }
   };
 
@@ -118,7 +141,7 @@ const UserModal = ({
   const isExpiringSoonish = remainingDays > 7 && remainingDays <= 30;
 
   return (
-    <div className="fixed inset-0 flex justify-center items-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 z-40 animate-in fade-in duration-200">
+    <div className="fixed inset-0 flex justify-center items-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 z-[100] animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="bg-gradient-to-r from-green-600 to-green-500 p-6 rounded-t-2xl relative">
@@ -293,13 +316,13 @@ const UserModal = ({
             onClick={() => setShowDeleteConfirm(true)}
             className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-600 font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
           >
-            <Trash2 className="w-4 h-4" /> Delete User
+            <Trash2 className="w-4 h-4" /> Archive User
           </button>
         </div>
 
         {/* Delete Confirmation */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 flex justify-center items-center bg-black/70 backdrop-blur-sm z-50">
+          <div className="fixed inset-0 flex justify-center items-center bg-black/70 backdrop-blur-sm z-[110]">
             <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
               <div className="bg-gradient-to-r from-red-600 to-red-500 p-6 flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -307,10 +330,10 @@ const UserModal = ({
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-white">
-                    Confirm Deletion
+                    Confirm Archive
                   </h2>
                   <p className="text-red-100 text-sm">
-                    This action cannot be undone
+                    This will move the user to archive
                   </p>
                 </div>
               </div>
@@ -332,24 +355,95 @@ const UserModal = ({
               <div className="px-6 pb-6 flex gap-3">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 py-3 px-6 rounded-xl hover:from-gray-300 hover:to-gray-400 font-semibold shadow-sm hover:shadow-md transition-all duration-200"
+                  disabled={isDeleting}
+                  className="flex-1 bg-gradient-to-r from-gray-200 to-gray-300 text-gray-800 py-3 px-6 rounded-xl hover:from-gray-300 hover:to-gray-400 font-semibold shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    onDelete(user.id);
-                    setShowDeleteConfirm(false);
-                  }}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-600 font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
+                  onClick={handleDeleteUser}
+                  disabled={isDeleting}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-600 font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Trash2 className="w-4 h-4" /> Delete
+                  {isDeleting ? (
+                    <>
+                      <svg
+                        className="animate-spin h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Archiving...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" /> Archive User
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {internalMessage.show && (
+        <div className="fixed top-4 right-4 z-[120] animate-in slide-in-from-top-2 duration-300">
+          <div
+            className={`rounded-xl shadow-2xl p-4 flex items-center gap-3 min-w-[300px] ${
+              internalMessage.type === 'success'
+                ? 'bg-gradient-to-r from-green-600 to-green-500'
+                : 'bg-gradient-to-r from-red-600 to-red-500'
+            }`}
+          >
+            {internalMessage.type === 'success' ? (
+              <svg
+                className="w-6 h-6 text-white flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-6 h-6 text-white flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            )}
+            <p className="text-white font-medium">{internalMessage.text}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

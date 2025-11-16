@@ -5,7 +5,6 @@ import { db } from '../firebase/firebaseConfig';
 import UserTable from '../components/manage-members/UserTable';
 import UserModal from '../components/manage-members/UserModal';
 import RenewMembershipModal from '../components/manage-members/RenewMembershipModal';
-import PromptModal from '../components/manage-members/PromptModal';
 
 const ManageMembers = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -301,13 +300,6 @@ const ManageMembers = () => {
           setMembershipDuration={setMembershipDuration}
           onRenew={renewMembership}
           onCancel={() => setRenewModal(false)}
-        />
-      )}
-
-      {showPrompt && (
-        <PromptModal
-          message={promptMessage}
-          onClose={() => setShowPrompt(false)}
         />
       )}
     </div>
