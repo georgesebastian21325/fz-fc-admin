@@ -3,16 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 import ManageMembers from '../pages/ManageMembers';
-import MembersArchive from '../admin-side-components/MembersArchive';
+import MembersArchive from '@/components/members-archive/MembersArchive';
 import AuthenticationCode from '../admin-side-components/AuthenticationCode';
+import UserFeedback from '@/components/user-feedback/UserFeedback';
 
 import { MdPeopleAlt } from 'react-icons/md';
 import { FaArchive, FaSignOutAlt } from 'react-icons/fa';
 import { BiCodeAlt } from 'react-icons/bi';
+import { MdFeedback } from 'react-icons/md'; // ⭐ NEW ICON
 
 import { auth } from '../firebase/firebaseConfig';
 
-const AdminSide = () => {
+const SideBar = () => {
   const [activeComponent, setActiveComponent] = useState('manageMembers');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -37,6 +39,8 @@ const AdminSide = () => {
         return <MembersArchive />;
       case 'authenticationCode':
         return <AuthenticationCode />;
+      case 'userFeedback': // ⭐ NEW
+        return <UserFeedback />;
       default:
         return <ManageMembers />;
     }
@@ -138,6 +142,17 @@ const AdminSide = () => {
                 setIsSidebarOpen(false);
               }}
             />
+
+            {/* ⭐ NEW MENU ITEM */}
+            <MenuItem
+              icon={MdFeedback}
+              label="User Feedback"
+              isActive={activeComponent === 'userFeedback'}
+              onClick={() => {
+                setActiveComponent('userFeedback');
+                setIsSidebarOpen(false);
+              }}
+            />
           </ul>
 
           {/* Logout */}
@@ -207,4 +222,4 @@ const AdminSide = () => {
   );
 };
 
-export default AdminSide;
+export default SideBar;
