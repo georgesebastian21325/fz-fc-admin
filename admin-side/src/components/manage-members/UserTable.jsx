@@ -21,7 +21,7 @@ const UserTable = ({
   onApprove,
   onDeny,
 }) => {
-  const [confirmAction, setConfirmAction] = useState(null); // { type: 'approve' | 'deny', userId: string }
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const calculateRemainingDays = (expiryDate) => {
     if (!expiryDate) return 0;
@@ -31,9 +31,11 @@ const UserTable = ({
   };
 
   const getRemainingDaysColor = (days) => {
-    if (days <= 7) return 'bg-red-50 text-red-700 border-red-200';
-    if (days <= 30) return 'bg-amber-50 text-amber-700 border-amber-200';
-    return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    if (days <= 7)
+      return 'bg-gradient-to-r from-red-100 to-rose-100 text-red-700 border-red-200';
+    if (days <= 30)
+      return 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border-amber-200';
+    return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200';
   };
 
   const handleConfirm = () => {
@@ -48,18 +50,23 @@ const UserTable = ({
 
   return (
     <>
-      <Card className="mb-8 shadow-xl border-0 rounded-2xl overflow-hidden">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pb-6">
+      <Card className="mb-8 shadow-xl border-0 rounded-2xl overflow-hidden bg-white">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 pb-6 bg-gradient-to-r from-green-50 to-emerald-50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-              <Mail className="w-5 h-5 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-600 to-green-500 flex items-center justify-center shadow-lg">
+              <Mail className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className="capitalize text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              {type} Users
-            </CardTitle>
-            <Badge variant="secondary" className="text-sm font-semibold">
-              {users.length}
-            </Badge>
+            <div>
+              <CardTitle className="capitalize text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-700 to-green-600 bg-clip-text text-transparent">
+                {type} Users
+              </CardTitle>
+              <Badge
+                variant="secondary"
+                className="mt-1 text-xs font-semibold bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 border-green-200"
+              >
+                {users.length} {users.length === 1 ? 'user' : 'users'}
+              </Badge>
+            </div>
           </div>
 
           {type === 'verified' && (
@@ -67,7 +74,7 @@ const UserTable = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 hover:bg-gray-100 transition-all duration-200 border-gray-300 shadow-sm"
+                className="gap-2 hover:bg-green-50 transition-all duration-200 border-green-300 shadow-sm text-green-700 hover:text-green-800"
                 onClick={() =>
                   sortOptions.setSortOption(
                     sortOptions.sortOption ? '' : 'sort'
@@ -80,14 +87,14 @@ const UserTable = ({
               </Button>
 
               {sortOptions.sortOption && (
-                <div className="absolute right-0 mt-2 bg-white shadow-2xl p-3 rounded-xl border border-gray-200 flex flex-col gap-1 z-20 w-64 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-2 bg-white shadow-2xl p-3 rounded-xl border border-green-200 flex flex-col gap-1 z-20 w-64 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide px-3 py-2">
                     Sort Options
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                    className="justify-start gap-2 hover:bg-green-50 hover:text-green-700 transition-colors"
                     onClick={sortOptions.handleSortEmail}
                   >
                     <Mail className="w-4 h-4" />
@@ -97,7 +104,7 @@ const UserTable = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="justify-start gap-2 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                    className="justify-start gap-2 hover:bg-green-50 hover:text-green-700 transition-colors"
                     onClick={sortOptions.handleSortRemainingDays}
                   >
                     <Clock className="w-4 h-4" />
@@ -117,7 +124,7 @@ const UserTable = ({
           <div className="overflow-hidden">
             <table className="min-w-full">
               <thead>
-                <tr className="bg-gradient-to-r from-gray-800 to-gray-700 text-white">
+                <tr className="bg-gradient-to-r from-green-600 to-green-500 text-white">
                   <th className="py-4 px-6 text-left font-semibold text-sm uppercase tracking-wider">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
@@ -150,7 +157,7 @@ const UserTable = ({
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-green-100">
                 {users.map((user, idx) => {
                   const remainingDays = calculateRemainingDays(
                     user.membershipExpiry
@@ -159,13 +166,13 @@ const UserTable = ({
                     <tr
                       key={user.id}
                       className={`${
-                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                      } hover:bg-blue-50/50 cursor-pointer transition-all duration-200 hover:shadow-md`}
+                        idx % 2 === 0 ? 'bg-white' : 'bg-green-50/30'
+                      } hover:bg-green-50 cursor-pointer transition-all duration-200 hover:shadow-sm`}
                       onClick={() => onRowClick(user.id)}
                     >
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-semibold text-sm shadow-md">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white font-semibold text-sm shadow-md">
                             {user.email.charAt(0).toUpperCase()}
                           </div>
                           <span className="font-medium text-gray-800">
@@ -179,10 +186,10 @@ const UserTable = ({
                           <td className="py-4 px-6">
                             <Badge
                               variant={user.active ? 'default' : 'secondary'}
-                              className={`uppercase text-xs font-semibold px-3 py-1 ${
+                              className={`uppercase text-xs font-semibold px-3 py-1 shadow-sm ${
                                 user.active
-                                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200'
-                                  : 'bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200'
+                                  ? 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 hover:bg-green-100 border-green-200'
+                                  : 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 hover:bg-amber-100 border-amber-200'
                               }`}
                             >
                               {user.active ? '✓ Verified' : '⏳ Pending'}
@@ -190,7 +197,7 @@ const UserTable = ({
                           </td>
                           <td className="py-4 px-6">
                             <div className="flex items-center gap-2 text-gray-700">
-                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <Calendar className="w-4 h-4 text-green-600" />
                               <span className="font-medium">
                                 {user.membershipExpiry
                                   ? new Date(
@@ -228,12 +235,13 @@ const UserTable = ({
                           <div className="flex justify-center gap-2">
                             <Button
                               size="sm"
-                              variant="default"
+                              className="bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmAction({
                                   type: 'approve',
                                   userId: user.id,
+                                  userEmail: user.email,
                                 });
                               }}
                             >
@@ -242,11 +250,13 @@ const UserTable = ({
                             <Button
                               size="sm"
                               variant="destructive"
+                              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setConfirmAction({
                                   type: 'deny',
                                   userId: user.id,
+                                  userEmail: user.email,
                                 });
                               }}
                             >
@@ -263,9 +273,16 @@ const UserTable = ({
           </div>
 
           {users.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
-              <Mail className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p className="text-lg font-medium">No {type} users found</p>
+            <div className="text-center py-16 text-gray-400 bg-gradient-to-b from-white to-green-50/30">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <Mail className="w-10 h-10 text-green-400" />
+              </div>
+              <p className="text-lg font-semibold text-gray-600">
+                No {type} users found
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Check back later for updates
+              </p>
             </div>
           )}
         </CardContent>
@@ -276,24 +293,58 @@ const UserTable = ({
         open={!!confirmAction}
         onOpenChange={() => setConfirmAction(null)}
       >
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>
-              Confirm{' '}
-              {confirmAction?.type === 'approve' ? 'Approval' : 'Denial'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-2 text-gray-700">
-            Are you sure you want to {confirmAction?.type} this user?
+        <DialogContent className="sm:max-w-[450px] rounded-2xl overflow-hidden p-0">
+          <div
+            className={`p-6 ${
+              confirmAction?.type === 'approve'
+                ? 'bg-gradient-to-r from-green-600 to-green-500'
+                : 'bg-gradient-to-r from-red-600 to-red-500'
+            }`}
+          >
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-white">
+                Confirm{' '}
+                {confirmAction?.type === 'approve' ? 'Approval' : 'Denial'}
+              </DialogTitle>
+              <p
+                className={`text-sm ${
+                  confirmAction?.type === 'approve'
+                    ? 'text-green-100'
+                    : 'text-red-100'
+                } mt-1`}
+              >
+                Please review before proceeding
+              </p>
+            </DialogHeader>
           </div>
-          <DialogFooter className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setConfirmAction(null)}>
+          <div className="p-6">
+            <p className="text-gray-700 text-base mb-4">
+              Are you sure you want to <strong>{confirmAction?.type}</strong>{' '}
+              this user?
+            </p>
+            {confirmAction?.userEmail && (
+              <div className="bg-gradient-to-br from-gray-50 to-green-50/30 p-4 rounded-xl border border-green-200 shadow-sm">
+                <p className="text-sm text-gray-700">
+                  <strong className="text-gray-900">Email:</strong>{' '}
+                  {confirmAction.userEmail}
+                </p>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="px-6 pb-6 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmAction(null)}
+              className="flex-1 hover:bg-gray-100 border-gray-300"
+            >
               Cancel
             </Button>
             <Button
-              variant={
-                confirmAction?.type === 'approve' ? 'default' : 'destructive'
-              }
+              className={`flex-1 shadow-md ${
+                confirmAction?.type === 'approve'
+                  ? 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600'
+                  : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600'
+              }`}
               onClick={handleConfirm}
             >
               {confirmAction?.type === 'approve' ? 'Approve' : 'Deny'}

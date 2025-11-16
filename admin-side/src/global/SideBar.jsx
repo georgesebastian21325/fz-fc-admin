@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 import ManageMembers from '../pages/ManageMembers';
-import MembersArchive from '@/components/members-archive/MembersArchive';
+import MembersArchive from '@/pages/MembersArchive';
 import AuthenticationCode from '../admin-side-components/AuthenticationCode';
 import UserFeedback from '@/components/user-feedback/UserFeedback';
 
