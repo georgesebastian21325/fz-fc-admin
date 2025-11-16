@@ -1,14 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminLoginPage from './pages/AdminLoginPage';
+import AdminLogin from './pages/AdminLogin';
 import SideBar from './global/SideBar';
-import AdminProtectedRoute from './admin-side-components/AdminProtectedRoute';
+import AdminProtectedRoute from './global/AdminProtectedRoute';
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<AdminLoginPage />} />
+        <Route path="/" element={<AdminLogin />} />
         <Route path="/admin" element={<SideBar />} />
         <Route
           path="/admin"

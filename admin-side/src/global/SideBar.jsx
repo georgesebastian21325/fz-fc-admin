@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import CompanyLogo from '../assets/company-logo.png';
 
 import ManageMembers from '../pages/ManageMembers';
 import MembersArchive from '@/pages/MembersArchive';
-import AuthenticationCode from '../admin-side-components/AuthenticationCode';
+import AuthenticationCode from '@/pages/AuthenticationCode';
 import UserFeedback from '@/components/user-feedback/UserFeedback';
 
 import { MdPeopleAlt } from 'react-icons/md';
 import { FaArchive, FaSignOutAlt } from 'react-icons/fa';
 import { BiCodeAlt } from 'react-icons/bi';
-import { MdFeedback } from 'react-icons/md'; // ⭐ NEW ICON
+import { MdFeedback } from 'react-icons/md';
 
 import { auth } from '../firebase/firebaseConfig';
 
@@ -100,12 +101,18 @@ const SideBar = () => {
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">FZ</span>
+            <div className="w-10 h-10  rounded-lg flex items-center justify-center">
+              <img src={CompanyLogo} alt="company-logo" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Fitness Zone</h1>
-              <p className="text-xs text-gray-500">Admin Panel</p>
+              <div>
+                <h1 className="text-xs font-bold text-gray-800 leading-tight">
+                  Fitness Zone Fitness Center
+                </h1>
+                <p className="text-xs text-gray-500 leading-tight">
+                  Admin Panel
+                </p>
+              </div>
             </div>
           </div>
         </div>

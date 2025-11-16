@@ -250,7 +250,7 @@ const ManageMembers = () => {
 
   return (
     <div className="min-h-screen  p-4 sm:p-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 text-start">
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent mb-8 text-start">
         Manage Users
       </h1>
 
