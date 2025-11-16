@@ -100,19 +100,14 @@ const SideBar = () => {
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10  rounded-lg flex items-center justify-center">
-              <img src={CompanyLogo} alt="company-logo" />
-            </div>
-            <div>
-              <div>
-                <h1 className="text-xs font-bold text-gray-800 leading-tight">
-                  Fitness Zone Fitness Center
-                </h1>
-                <p className="text-xs text-gray-500 leading-tight">
-                  Admin Panel
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <img src={CompanyLogo} alt="Logo" className="w-8 h-8" />
+
+            <div className="leading-tight">
+              <h1 className="text-base font-bold text-gray-900">
+                Fitness Zone
+              </h1>
+              <p className="text-sm text-gray-500">Fitness Center</p>
             </div>
           </div>
         </div>
