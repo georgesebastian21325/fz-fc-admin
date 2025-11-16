@@ -6,7 +6,7 @@ import CompanyLogo from '../assets/company-logo.png';
 import ManageMembers from '../pages/ManageMembers';
 import MembersArchive from '@/pages/MembersArchive';
 import AuthenticationCode from '@/pages/AuthenticationCode';
-import UserFeedback from '@/components/user-feedback/UserFeedback';
+import UserFeedback from '@/pages/UserFeedback';
 
 import { MdPeopleAlt } from 'react-icons/md';
 import { FaArchive, FaSignOutAlt } from 'react-icons/fa';
