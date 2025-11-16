@@ -108,6 +108,7 @@ const SideBar = () => {
                 Fitness Zone
               </h1>
               <p className="text-sm text-gray-500">Fitness Center</p>
+              <p className="text-xs text-gray-500">Admin Panel</p>
             </div>
           </div>
         </div>
