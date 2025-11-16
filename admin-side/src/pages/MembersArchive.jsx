@@ -15,6 +15,8 @@ const MembersArchive = () => {
     userId: null,
     userName: null,
   });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     const fetchArchivedUsers = async () => {
@@ -37,37 +39,72 @@ const MembersArchive = () => {
 
   const openConfirmModal = (type, userId, userName) => {
     setConfirmModal({ isOpen: true, type, userId, userName });
+    setIsSuccess(false);
   };
 
   const closeConfirmModal = () => {
-    setConfirmModal({
-      isOpen: false,
-      type: null,
-      userId: null,
-      userName: null,
-    });
+    if (!isProcessing && !isSuccess) {
+      setConfirmModal({
+        isOpen: false,
+        type: null,
+        userId: null,
+        userName: null,
+      });
+      setIsSuccess(false);
+    }
   };
 
   const deleteUserPermanently = async (userId) => {
+    setIsProcessing(true);
     try {
       await updateDoc(doc(db, 'users', userId), { status: 'deleted' });
       setArchivedUsers((prev) => prev.filter((user) => user.id !== userId));
-      closeConfirmModal();
-      alert('User marked as deleted permanently.');
+
+      // Show success state
+      setIsProcessing(false);
+      setIsSuccess(true);
+
+      // Auto-reset after modal closes
+      setTimeout(() => {
+        setConfirmModal({
+          isOpen: false,
+          type: null,
+          userId: null,
+          userName: null,
+        });
+        setIsSuccess(false);
+      }, 2000);
     } catch (error) {
       console.error('Error deleting user permanently:', error);
+      setIsProcessing(false);
       alert('Failed to delete user. Please try again.');
     }
   };
 
   const restoreUser = async (userId) => {
+    setIsProcessing(true);
     try {
       await updateDoc(doc(db, 'users', userId), { status: 'active' });
       setArchivedUsers((prev) => prev.filter((user) => user.id !== userId));
-      closeConfirmModal();
-      alert('User restored successfully.');
+
+      // Show success state
+      setIsProcessing(false);
+      setIsSuccess(true);
+
+      // Auto-reset after modal closes
+      setTimeout(() => {
+        setConfirmModal({
+          isOpen: false,
+          type: null,
+          userId: null,
+          userName: null,
+        });
+        setIsSuccess(false);
+      }, 2000);
     } catch (error) {
       console.error('Error restoring user:', error);
+      setIsProcessing(false);
+      alert('Failed to restore user. Please try again.');
     }
   };
 
@@ -96,6 +133,8 @@ const MembersArchive = () => {
         confirmModal={confirmModal}
         closeConfirmModal={closeConfirmModal}
         handleConfirm={handleConfirm}
+        isProcessing={isProcessing}
+        isSuccess={isSuccess}
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { db } from '../firebase/firebaseConfig';
 import UserTable from '../components/manage-members/UserTable';
 import UserModal from '../components/manage-members/UserModal';
 import RenewMembershipModal from '../components/manage-members/RenewMembershipModal';
+import NotificationModal from '../components/manage-members/NotificationModal';
 
 const ManageMembers = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
@@ -19,6 +20,13 @@ const ManageMembers = () => {
   const [emailSortOrder, setEmailSortOrder] = useState('asc');
   const [remainingDaysSortOrder, setRemainingDaysSortOrder] = useState('asc');
   const [renewModal, setRenewModal] = useState(false);
+
+  // New state for notification modal
+  const [notificationModal, setNotificationModal] = useState({
+    show: false,
+    message: '',
+    type: 'success',
+  });
 
   // Fetch users
   useEffect(() => {
@@ -92,7 +100,11 @@ const ManageMembers = () => {
   // Approve user
   const approveUser = async (userId) => {
     if (membershipDuration < 1 || membershipDuration > 12) {
-      alert('Select a membership duration between 1-12 months.');
+      setNotificationModal({
+        show: true,
+        message: 'Select a membership duration between 1-12 months.',
+        type: 'error',
+      });
       return;
     }
 
@@ -119,7 +131,11 @@ const ManageMembers = () => {
       setPendingUsers((prev) => prev.filter((user) => user.id !== userId));
       setVerifiedUsers((prev) => [...prev, updatedUser]);
 
-      alert(`User approved for ${membershipDuration} month(s)!`);
+      setNotificationModal({
+        show: true,
+        message: `User approved for ${membershipDuration} month(s)!`,
+        type: 'success',
+      });
     } catch (error) {
       console.error(error);
       setPromptMessage('Failed to approve user.');
@@ -135,7 +151,12 @@ const ManageMembers = () => {
     try {
       await updateDoc(doc(db, 'users', userId), { active: false });
       setPendingUsers((prev) => prev.filter((user) => user.id !== userId));
-      alert('User denied.');
+
+      setNotificationModal({
+        show: true,
+        message: 'User denied.',
+        type: 'success',
+      });
     } catch (error) {
       console.error(error);
       setPromptMessage('Failed to deny user.');
@@ -214,6 +235,11 @@ const ManageMembers = () => {
   };
 
   const closeModal = () => setSelectedUser(null);
+
+  // Close notification modal
+  const closeNotificationModal = () => {
+    setNotificationModal({ show: false, message: '', type: 'success' });
+  };
 
   // Sorting handlers
   const handleSortEmail = () => {
@@ -300,6 +326,14 @@ const ManageMembers = () => {
           setMembershipDuration={setMembershipDuration}
           onRenew={renewMembership}
           onCancel={() => setRenewModal(false)}
+        />
+      )}
+
+      {notificationModal.show && (
+        <NotificationModal
+          message={notificationModal.message}
+          type={notificationModal.type}
+          onClose={closeNotificationModal}
         />
       )}
     </div>
