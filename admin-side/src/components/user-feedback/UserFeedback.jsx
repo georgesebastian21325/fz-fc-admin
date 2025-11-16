@@ -50,28 +50,40 @@ const UserFeedback = () => {
     setLoading(true);
     setError(null);
     try {
+      // Fetch all users
       const usersSnapshot = await getDocs(collection(db, 'users'));
+
+      // Map each user's feedback
       const feedbackPromises = usersSnapshot.docs.map(async (userDoc) => {
         const uid = userDoc.id;
+        const userData = userDoc.data();
+        const fullName =
+          `${userData.firstName || ''} ${userData.lastName || ''}`.trim() ||
+          'Anonymous';
+
+        // Fetch this user's feedback
         const feedbackSnapshot = await getDocs(
           collection(db, `users/${uid}/feedback`)
         );
-        return feedbackSnapshot.docs.map((doc) => ({
-          id: doc.id,
+
+        return feedbackSnapshot.docs.map((fbDoc) => ({
+          id: fbDoc.id,
           uid,
-          name: userDoc.data().name || 'Anonymous',
-          ...doc.data(),
+          name: fullName, // user's full name from "users" collection
+          ...fbDoc.data(), // feedback data
         }));
       });
 
       const feedbackArrays = await Promise.all(feedbackPromises);
       const allFeedback = feedbackArrays.flat();
+
+      // Sort by timestamp (descending)
       allFeedback.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       setFeedbackList(allFeedback);
       calculateStats(allFeedback);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching feedback:', err);
       setError('Failed to load feedback.');
       showToast('Failed to load feedback.', 'error');
     } finally {
