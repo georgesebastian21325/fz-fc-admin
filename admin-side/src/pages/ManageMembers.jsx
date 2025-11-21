@@ -149,8 +149,13 @@ const ManageMembers = () => {
   const denyUser = async (userId) => {
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'users', userId), { active: false });
-      setPendingUsers((prev) => prev.filter((user) => user.id !== userId));
+      await updateDoc(doc(db, 'users', userId), {
+        active: false,
+        status: 'denied', // or archived
+      });
+
+      // remove from UI
+      setPendingUsers((prev) => prev.filter((u) => u.id !== userId));
 
       setNotificationModal({
         show: true,
